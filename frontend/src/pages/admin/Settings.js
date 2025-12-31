@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { toast } from 'sonner';
-import { Settings as SettingsIcon, Save, MessageCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Save, MessageCircle, Percent } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -14,7 +14,10 @@ const AdminSettings = () => {
     iban_holder: '',
     bank_name: '',
     iban: '',
-    whatsapp: ''
+    whatsapp: '',
+    western_union_fee: 7.5,
+    masak_fee: 15,
+    masak_bonus: 35
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,7 +29,15 @@ const AdminSettings = () => {
   const fetchSettings = async () => {
     try {
       const response = await axios.get(`${API}/admin/settings`);
-      setSettings(response.data);
+      setSettings({
+        iban_holder: response.data.iban_holder || '',
+        bank_name: response.data.bank_name || '',
+        iban: response.data.iban || '',
+        whatsapp: response.data.whatsapp || '',
+        western_union_fee: response.data.western_union_fee || 7.5,
+        masak_fee: response.data.masak_fee || 15,
+        masak_bonus: response.data.masak_bonus || 35
+      });
     } catch (error) {
       toast.error('Ayarlar yüklenemedi');
     } finally {
@@ -50,66 +61,66 @@ const AdminSettings = () => {
   return (
     <div className="space-y-6" data-testid="admin-settings">
       <div>
-        <h1 className="font-chivo font-black text-3xl text-white mb-2">İletişim & Banka Ayarları</h1>
-        <p className="text-zinc-400">IBAN ve iletişim bilgilerini yönetin</p>
+        <h1 className="font-chivo font-black text-3xl text-slate-800 mb-2">İletişim & Banka Ayarları</h1>
+        <p className="text-slate-500">IBAN, iletişim bilgileri ve vergi oranlarını yönetin</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-zinc-900/70 border-zinc-800">
+        <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5 text-gold-500" />
+            <CardTitle className="text-slate-800 flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5 text-purple-500" />
               IBAN Bilgileri
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-zinc-400">Yükleniyor...</p>
+              <p className="text-slate-400">Yükleniyor...</p>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">IBAN SAHİBİ</Label>
+                  <Label className="text-slate-700">IBAN SAHİBİ</Label>
                   <Input
                     data-testid="settings-iban-holder"
                     value={settings.iban_holder}
                     onChange={(e) => setSettings({ ...settings, iban_holder: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-white border-slate-200 text-slate-800"
                     placeholder="Hesap sahibi adı"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">BANKA ADI</Label>
+                  <Label className="text-slate-700">BANKA ADI</Label>
                   <Input
                     data-testid="settings-bank-name"
                     value={settings.bank_name}
                     onChange={(e) => setSettings({ ...settings, bank_name: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-white border-slate-200 text-slate-800"
                     placeholder="Banka adı"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">IBAN NUMARASI</Label>
+                  <Label className="text-slate-700">IBAN NUMARASI</Label>
                   <Input
                     data-testid="settings-iban"
                     value={settings.iban}
                     onChange={(e) => setSettings({ ...settings, iban: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-white font-mono"
+                    className="bg-white border-slate-200 text-slate-800 font-mono"
                     placeholder="TR00 0000 0000 0000 0000 0000 00"
                   />
                 </div>
                 
-                <div className="pt-4 border-t border-zinc-800">
-                  <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <div className="pt-4 border-t border-slate-200">
+                  <h3 className="text-slate-800 font-semibold mb-4 flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-green-500" />
                     WhatsApp İletişim
                   </h3>
                   <div className="space-y-2">
-                    <Label className="text-zinc-300">WHATSAPP NUMARASI (905xxxxxxxxx formatında)</Label>
+                    <Label className="text-slate-700">WHATSAPP NUMARASI (905xxxxxxxxx formatında)</Label>
                     <Input
                       data-testid="settings-whatsapp"
                       value={settings.whatsapp}
                       onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                      className="bg-zinc-800 border-zinc-700 text-white font-mono"
+                      className="bg-white border-slate-200 text-slate-800 font-mono"
                       placeholder="905550000000"
                     />
                   </div>
@@ -119,7 +130,7 @@ const AdminSettings = () => {
                   type="submit"
                   disabled={saving}
                   data-testid="settings-save-btn"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white font-bold"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {saving ? 'Kaydediliyor...' : 'AYARLARI KAYDET'}
@@ -129,31 +140,84 @@ const AdminSettings = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/70 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-white">Aktif Bilgiler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 p-4 bg-zinc-800/50 rounded-lg border border-dashed border-zinc-700">
-              <div>
-                <span className="text-zinc-400 text-sm">WhatsApp:</span>
-                <p className="text-white font-mono">{settings.whatsapp || '-'}</p>
+        <div className="space-y-6">
+          {/* Fee Settings */}
+          <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-slate-800 flex items-center gap-2">
+                <Percent className="h-5 w-5 text-blue-500" />
+                Vergi/Komisyon Oranları
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-slate-700">Western Union Komisyonu (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={settings.western_union_fee}
+                  onChange={(e) => setSettings({ ...settings, western_union_fee: parseFloat(e.target.value) || 0 })}
+                  className="bg-white border-slate-200 text-slate-800 font-mono"
+                />
               </div>
-              <div>
-                <span className="text-zinc-400 text-sm">IBAN Sahibi:</span>
-                <p className="text-white">{settings.iban_holder || '-'}</p>
+              <div className="space-y-2">
+                <Label className="text-slate-700">MASAK Vergi Oranı (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={settings.masak_fee}
+                  onChange={(e) => setSettings({ ...settings, masak_fee: parseFloat(e.target.value) || 0 })}
+                  className="bg-white border-slate-200 text-slate-800 font-mono"
+                />
               </div>
-              <div>
-                <span className="text-zinc-400 text-sm">Banka:</span>
-                <p className="text-white">{settings.bank_name || '-'}</p>
+              <div className="space-y-2">
+                <Label className="text-slate-700">MASAK Bonus Oranı (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={settings.masak_bonus}
+                  onChange={(e) => setSettings({ ...settings, masak_bonus: parseFloat(e.target.value) || 0 })}
+                  className="bg-white border-slate-200 text-slate-800 font-mono"
+                />
               </div>
-              <div>
-                <span className="text-zinc-400 text-sm">IBAN:</span>
-                <p className="text-gold-500 font-mono">{settings.iban || '-'}</p>
+            </CardContent>
+          </Card>
+
+          {/* Current Settings Preview */}
+          <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-slate-800">Aktif Bilgiler</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                <div>
+                  <span className="text-slate-500 text-sm">WhatsApp:</span>
+                  <p className="text-slate-800 font-mono">{settings.whatsapp || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-sm">IBAN Sahibi:</span>
+                  <p className="text-slate-800">{settings.iban_holder || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-sm">Banka:</span>
+                  <p className="text-slate-800">{settings.bank_name || '-'}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-sm">IBAN:</span>
+                  <p className="text-purple-600 font-mono">{settings.iban || '-'}</p>
+                </div>
+                <div className="pt-3 border-t border-slate-200">
+                  <span className="text-slate-500 text-sm">Western Union: </span>
+                  <span className="text-blue-600 font-bold">%{settings.western_union_fee}</span>
+                  <span className="text-slate-500 text-sm ml-4">MASAK: </span>
+                  <span className="text-purple-600 font-bold">%{settings.masak_fee}</span>
+                  <span className="text-slate-500 text-sm ml-4">Bonus: </span>
+                  <span className="text-green-600 font-bold">%{settings.masak_bonus}</span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
