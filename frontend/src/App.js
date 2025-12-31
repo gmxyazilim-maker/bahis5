@@ -1,53 +1,88 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import AdminLayout from "./layouts/AdminLayout";
+import UserLayout from "./layouts/UserLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminCoupons from "./pages/admin/Coupons";
+import AdminUsers from "./pages/admin/Users";
+import AdminWithdrawals from "./pages/admin/Withdrawals";
+import AdminTaxPayments from "./pages/admin/TaxPayments";
+import AdminWesternUnion from "./pages/admin/WesternUnion";
+import AdminMasak from "./pages/admin/Masak";
+import AdminActivations from "./pages/admin/Activations";
+import AdminSettings from "./pages/admin/Settings";
+import UserDashboard from "./pages/user/Dashboard";
+import UserCoupon from "./pages/user/Coupon";
+import UserWithdraw from "./pages/user/Withdraw";
+import "./App.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-void-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+  }
+  
+  return children;
 };
+
+function AppRoutes() {
+  const { user } = useAuth();
+  
+  return (
+    <Routes>
+      <Route path="/login" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <LoginPage />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
+      
+      {/* Admin Routes */}
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="coupons" element={<AdminCoupons />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="withdrawals" element={<AdminWithdrawals />} />
+        <Route path="tax-payments" element={<AdminTaxPayments />} />
+        <Route path="western-union" element={<AdminWesternUnion />} />
+        <Route path="masak" element={<AdminMasak />} />
+        <Route path="activations" element={<AdminActivations />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
+      
+      {/* User Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute requiredRole="user"><UserLayout /></ProtectedRoute>}>
+        <Route index element={<UserDashboard />} />
+        <Route path="coupon" element={<UserCoupon />} />
+        <Route path="withdraw" element={<UserWithdraw />} />
+      </Route>
+      
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
