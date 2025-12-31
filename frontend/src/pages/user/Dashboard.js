@@ -13,6 +13,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [coupon, setCoupon] = useState(null);
+  const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ const UserDashboard = () => {
       ]);
       setBalance(balanceRes.data.balance);
       setCoupon(couponRes.data);
+      setRevealed(couponRes.data?.revealed || balanceRes.data?.coupon_revealed || false);
     } catch (error) {
       console.error('Data fetch error:', error);
     } finally {
@@ -37,38 +39,39 @@ const UserDashboard = () => {
   return (
     <div className="space-y-6" data-testid="user-dashboard">
       {/* Hero Card */}
-      <Card className="bg-gradient-to-br from-zinc-900 to-black border border-gold-500/20 overflow-hidden relative">
-        <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/918798/pexels-photo-918798.jpeg')] bg-cover bg-center opacity-10"></div>
+      <Card className="bg-gradient-to-br from-purple-500 via-violet-500 to-blue-500 border-0 overflow-hidden relative shadow-2xl">
         <CardContent className="relative p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <p className="text-zinc-400 mb-2">Hoş geldiniz,</p>
+              <p className="text-purple-100 mb-2">Hoş geldiniz,</p>
               <h1 className="font-chivo font-black text-3xl md:text-4xl text-white mb-4">{user?.username}</h1>
               <div className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-gold-500" />
-                <span className="text-zinc-400">Mevcut Bakiye:</span>
+                <Wallet className="h-5 w-5 text-purple-200" />
+                <span className="text-purple-100">Mevcut Bakiye:</span>
               </div>
-              <p className="font-mono font-bold text-4xl md:text-5xl text-gold-500 mt-2">
-                {balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
+              <p className="font-mono font-bold text-4xl md:text-5xl text-white mt-2">
+                {revealed ? balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) : '***.**'} TL
               </p>
             </div>
             <div className="flex flex-col gap-3">
               <Button
                 onClick={() => navigate('/dashboard/coupon')}
                 data-testid="view-coupon-btn"
-                className="bg-gold-500 hover:bg-gold-600 text-black font-bold px-8"
+                className="bg-white hover:bg-slate-100 text-purple-600 font-bold px-8 shadow-lg"
               >
                 <Ticket className="h-4 w-4 mr-2" />
                 Kuponumu Gör
               </Button>
-              <Button
-                onClick={() => navigate('/dashboard/withdraw')}
-                data-testid="withdraw-btn"
-                className="bg-green-600 hover:bg-green-700 text-white font-bold px-8"
-              >
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Para Çek
-              </Button>
+              {revealed && (
+                <Button
+                  onClick={() => navigate('/dashboard/withdraw')}
+                  data-testid="withdraw-btn"
+                  className="bg-gradient-to-r from-green-400 to-emerald-500 hover:opacity-90 text-white font-bold px-8 shadow-lg"
+                >
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Para Çek
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -76,40 +79,47 @@ const UserDashboard = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-zinc-900/70 border-zinc-800">
+        <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg card-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Kupon Durumu</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-500">Kupon Durumu</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-zinc-500">Yükleniyor...</p>
+              <p className="text-slate-400">Yükleniyor...</p>
             ) : coupon ? (
-              <span className={`text-xl font-bold ${coupon.status === 'kazandi' ? 'text-green-500' : 'text-red-500'}`}>
-                {coupon.status === 'kazandi' ? 'KAZANDI' : 'KAYBETTİ'}
-              </span>
+              revealed ? (
+                <span className={`text-xl font-bold ${
+                  coupon.status === 'kazandi' ? 'text-green-500' : 
+                  coupon.status === 'kaybetti' ? 'text-red-500' : 'text-amber-500'
+                }`}>
+                  {coupon.status === 'kazandi' ? 'KAZANDI' : coupon.status === 'kaybetti' ? 'KAYBETTİ' : 'BEKLEMEDE'}
+                </span>
+              ) : (
+                <span className="text-amber-500 text-xl font-bold">MAÇLAR DEVAM EDİYOR</span>
+              )
             ) : (
-              <span className="text-zinc-500">Kupon atanmamış</span>
+              <span className="text-slate-400">Kupon atanmamış</span>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/70 border-zinc-800">
+        <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg card-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Toplam Oran</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-500">Toplam Oran</CardTitle>
           </CardHeader>
           <CardContent>
-            <span className="text-xl font-bold font-mono text-gold-500">
-              {coupon?.total_odds?.toFixed(2) || '0.00'}
+            <span className="text-xl font-bold font-mono text-purple-600">
+              {revealed ? (coupon?.total_odds?.toFixed(2) || '0.00') : '??.??'}
             </span>
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/70 border-zinc-800">
+        <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg card-hover">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Maç Sayısı</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-500">Maç Sayısı</CardTitle>
           </CardHeader>
           <CardContent>
-            <span className="text-xl font-bold text-white">
+            <span className="text-xl font-bold text-slate-800">
               {coupon?.matches?.length || 0}
             </span>
           </CardContent>
@@ -118,31 +128,37 @@ const UserDashboard = () => {
 
       {/* Mini Coupon Preview */}
       {coupon && (
-        <Card className="bg-zinc-900/70 border-zinc-800">
+        <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Ticket className="h-5 w-5 text-gold-500" />
+            <CardTitle className="text-slate-800 flex items-center gap-2">
+              <Ticket className="h-5 w-5 text-purple-500" />
               Kupon Önizleme
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {coupon.matches?.slice(0, 3).map((match, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                   <div>
-                    <span className="text-white font-semibold">{match.teams}</span>
-                    <span className="text-zinc-400 ml-2 text-sm">{match.prediction}</span>
+                    <span className="text-slate-800 font-semibold">{match.teams}</span>
+                    <span className="text-slate-400 ml-2 text-sm">{match.prediction}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-gold-500 font-mono">{match.odds}</span>
-                    <span className={`font-bold ${match.is_correct !== false ? 'text-green-500' : 'text-red-500'}`}>
-                      {match.result}
-                    </span>
+                    {revealed ? (
+                      <>
+                        <span className="text-purple-600 font-mono">{match.odds}</span>
+                        <span className="font-bold text-green-500">
+                          {match.result}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-amber-500 text-sm">Bekleniyor...</span>
+                    )}
                   </div>
                 </div>
               ))}
               {coupon.matches?.length > 3 && (
-                <p className="text-center text-zinc-500 text-sm">
+                <p className="text-center text-slate-400 text-sm">
                   +{coupon.matches.length - 3} maç daha...
                 </p>
               )}

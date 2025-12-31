@@ -35,11 +35,11 @@ const AdminLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-void-950 flex">
+    <div className="min-h-screen bg-gradient-vibrant flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900/50 backdrop-blur-md border-r border-white/5 flex flex-col fixed h-screen">
-        <div className="p-6 border-b border-white/5">
-          <h1 className="font-chivo font-black text-2xl text-gold-500">YÖNETİCİ</h1>
+      <aside className="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex flex-col fixed h-screen shadow-xl">
+        <div className="p-6 border-b border-slate-200">
+          <h1 className="font-chivo font-black text-2xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">YÖNETİCİ</h1>
         </div>
         
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -50,10 +50,10 @@ const AdminLayout = () => {
               end={item.end}
               data-testid={`admin-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-gold-500/10 text-gold-500 border border-gold-500/20'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`
               }
             >
@@ -63,11 +63,11 @@ const AdminLayout = () => {
           ))}
         </nav>
         
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
             data-testid="admin-logout-btn"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 w-full transition-all"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 w-full transition-all"
           >
             <LogOut className="h-5 w-5" />
             <span>Çıkış Yap</span>

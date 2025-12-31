@@ -18,11 +18,11 @@ const UserLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-void-950">
+    <div className="min-h-screen bg-gradient-vibrant">
       {/* Header */}
-      <header className="bg-zinc-900/50 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="font-chivo font-black text-xl text-gold-500">BAHİS DANIŞMANI</h1>
+          <h1 className="font-chivo font-black text-xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">BAHİS DANIŞMANI</h1>
           
           <nav className="hidden md:flex items-center gap-2">
             {navItems.map((item) => (
@@ -32,10 +32,10 @@ const UserLayout = () => {
                 end={item.end}
                 data-testid={`user-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-gold-500/10 text-gold-500'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`
                 }
               >
@@ -46,13 +46,13 @@ const UserLayout = () => {
           </nav>
           
           <div className="flex items-center gap-4">
-            <span className="text-zinc-400 text-sm">
-              Hoş geldin, <span className="text-white font-semibold">{user?.username}</span>
+            <span className="text-slate-500 text-sm">
+              Hoş geldin, <span className="text-slate-800 font-semibold">{user?.username}</span>
             </span>
             <button
               onClick={handleLogout}
               data-testid="user-logout-btn"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 transition-all"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Çıkış</span>
@@ -61,17 +61,17 @@ const UserLayout = () => {
         </div>
         
         {/* Mobile Nav */}
-        <nav className="md:hidden border-t border-white/5 px-4 py-2 flex gap-2 overflow-x-auto">
+        <nav className="md:hidden border-t border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-gold-500/10 text-gold-500'
-                    : 'text-zinc-400'
+                    ? 'bg-gradient-to-r from-purple-500 to-violet-500 text-white'
+                    : 'text-slate-500'
                 }`
               }
             >
