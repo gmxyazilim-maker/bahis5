@@ -1,0 +1,108 @@
+{
+  "timestamp": "2025-12-31T12:18:08.340156",
+  "total_tests": 20,
+  "passed_tests": 15,
+  "success_rate": 75.0,
+  "results": [
+    {
+      "test": "Get Public Settings",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Seed Admin",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Admin Users (No Auth)",
+      "success": false,
+      "details": "Status: 403, Expected: 401, Response: {'detail': 'Not authenticated'}"
+    },
+    {
+      "test": "Admin Coupons (No Auth)",
+      "success": false,
+      "details": "Status: 403, Expected: 401, Response: {'detail': 'Not authenticated'}"
+    },
+    {
+      "test": "User Balance (No Auth)",
+      "success": false,
+      "details": "Status: 403, Expected: 401, Response: {'detail': 'Not authenticated'}"
+    },
+    {
+      "test": "User Coupon (No Auth)",
+      "success": false,
+      "details": "Status: 403, Expected: 401, Response: {'detail': 'Not authenticated'}"
+    },
+    {
+      "test": "Admin Login",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get Pending Users",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get All Users",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get Coupon Templates",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get Withdrawal Requests",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get Settings",
+      "success": false,
+      "details": "Status: 520, Expected: 200, Response: Internal Server Error"
+    },
+    {
+      "test": "Create Coupon Template",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Create User",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Update Settings",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get User Coupon",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get User Balance",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Get Withdrawal Status",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Create Withdrawal Request",
+      "success": true,
+      "details": "Status: 200"
+    }
+  ]
+}
