@@ -422,8 +422,10 @@ async def get_activation_payments(admin: dict = Depends(get_admin_user)):
 async def get_settings(admin: dict = Depends(get_admin_user)):
     settings = await db.settings.find_one({"id": "main_settings"}, {"_id": 0})
     if not settings:
-        settings = Settings().model_dump()
+        default_settings = Settings()
+        settings = default_settings.model_dump()
         await db.settings.insert_one(settings)
+        return default_settings.model_dump()
     return settings
 
 @api_router.put("/admin/settings")
