@@ -57,6 +57,7 @@ class User(UserBase):
     balance: float = 0
     status: str = "pending"  # pending, active, rejected
     coupon_id: Optional[str] = None
+    coupon_revealed: bool = False  # Admin reveals coupon results
     tax_status: str = "temiz"
     iban: Optional[str] = None
     bank_name: Optional[str] = None
@@ -73,7 +74,7 @@ class CouponTemplate(BaseModel):
     total_odds: float = 1.0
     bet_amount: float = 0
     max_win: float = 0
-    status: str = "kazandi"  # kazandi, kaybetti
+    status: str = "beklemede"  # beklemede, kazandi, kaybetti
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CouponTemplateCreate(BaseModel):
@@ -81,7 +82,7 @@ class CouponTemplateCreate(BaseModel):
     consultant_name: str = "Bahis Danışmanı"
     matches: List[dict] = []
     bet_amount: float = 0
-    status: str = "kazandi"
+    status: str = "beklemede"
 
 class WithdrawalRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -102,6 +103,7 @@ class WesternUnionPayment(BaseModel):
     fee_percentage: float = 7.5
     fee_amount: float
     total_to_pay: float
+    dekont_sent: bool = False
     status: str = "pending"  # pending, approved, rejected
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -113,8 +115,10 @@ class MasakPayment(BaseModel):
     transfer_amount: float
     fee_percentage: float = 15
     fee_amount: float
+    bonus_percentage: float = 35
     bonus_amount: float = 0
     total_to_pay: float
+    dekont_sent: bool = False
     status: str = "pending"  # pending, approved, rejected
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -145,6 +149,9 @@ class Settings(BaseModel):
     bank_name: str = ""
     iban: str = ""
     whatsapp: str = ""
+    western_union_fee: float = 7.5  # %
+    masak_fee: float = 15  # %
+    masak_bonus: float = 35  # %
 
 # ============ HELPER FUNCTIONS ============
 
@@ -273,7 +280,8 @@ async def admin_create_user(user_data: dict, admin: dict = Depends(get_admin_use
         role="user",
         balance=user_data.get('balance', 0),
         status="active",
-        coupon_id=user_data.get('coupon_id')
+        coupon_id=user_data.get('coupon_id'),
+        coupon_revealed=False
     )
     user_dict = user.model_dump()
     user_dict['password'] = hash_password(user_data.get('password', '123456'))
@@ -293,9 +301,27 @@ async def assign_coupon(user_id: str, data: dict, admin: dict = Depends(get_admi
     if coupon:
         await db.users.update_one(
             {"id": user_id}, 
-            {"$set": {"coupon_id": data['coupon_id'], "balance": coupon.get('max_win', 0)}}
+            {"$set": {"coupon_id": data['coupon_id'], "balance": coupon.get('max_win', 0), "coupon_revealed": False}}
         )
     return {"message": "Kupon atandı"}
+
+@api_router.put("/admin/users/{user_id}/reveal-coupon")
+async def reveal_coupon(user_id: str, admin: dict = Depends(get_admin_user)):
+    """Admin reveals the coupon results to user"""
+    await db.users.update_one({"id": user_id}, {"$set": {"coupon_revealed": True}})
+    return {"message": "Kupon sonuçları kullanıcıya gösterildi"}
+
+@api_router.put("/admin/users/{user_id}/update")
+async def update_user(user_id: str, data: dict, admin: dict = Depends(get_admin_user)):
+    """Update user balance and other info"""
+    update_data = {}
+    if 'balance' in data:
+        update_data['balance'] = data['balance']
+    if 'coupon_revealed' in data:
+        update_data['coupon_revealed'] = data['coupon_revealed']
+    if update_data:
+        await db.users.update_one({"id": user_id}, {"$set": update_data})
+    return {"message": "Kullanıcı güncellendi"}
 
 # ============ COUPON TEMPLATES ============
 
@@ -326,6 +352,41 @@ async def create_coupon_template(coupon_data: CouponTemplateCreate, admin: dict 
     
     await db.coupon_templates.insert_one(coupon_dict)
     return {"message": "Kupon şablonu oluşturuldu", "coupon_id": coupon.id}
+
+@api_router.put("/admin/coupons/{coupon_id}")
+async def update_coupon_template(coupon_id: str, data: dict, admin: dict = Depends(get_admin_user)):
+    """Update coupon template - matches, odds, status etc."""
+    update_data = {}
+    
+    if 'matches' in data:
+        update_data['matches'] = data['matches']
+        # Recalculate odds
+        total_odds = 1.0
+        for match in data['matches']:
+            total_odds *= float(match.get('odds', 1))
+        update_data['total_odds'] = round(total_odds, 2)
+        
+        if 'bet_amount' in data:
+            update_data['bet_amount'] = data['bet_amount']
+            update_data['max_win'] = round(data['bet_amount'] * total_odds, 2)
+    
+    if 'status' in data:
+        update_data['status'] = data['status']
+    
+    if 'consultant_name' in data:
+        update_data['consultant_name'] = data['consultant_name']
+    
+    if update_data:
+        await db.coupon_templates.update_one({"id": coupon_id}, {"$set": update_data})
+        
+        # Update all users with this coupon
+        if 'max_win' in update_data:
+            await db.users.update_many(
+                {"coupon_id": coupon_id},
+                {"$set": {"balance": update_data['max_win']}}
+            )
+    
+    return {"message": "Kupon şablonu güncellendi"}
 
 @api_router.delete("/admin/coupons/{coupon_id}")
 async def delete_coupon_template(coupon_id: str, admin: dict = Depends(get_admin_user)):
@@ -445,12 +506,18 @@ async def get_user_coupon(current_user: dict = Depends(get_current_user)):
     if not current_user.get('coupon_id'):
         return None
     coupon = await db.coupon_templates.find_one({"id": current_user['coupon_id']}, {"_id": 0})
+    if coupon:
+        coupon['revealed'] = current_user.get('coupon_revealed', False)
     return coupon
 
 @api_router.get("/user/balance")
 async def get_user_balance(current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
-    return {"balance": user.get('balance', 0), "withdrawal_status": user.get('withdrawal_status')}
+    return {
+        "balance": user.get('balance', 0), 
+        "withdrawal_status": user.get('withdrawal_status'),
+        "coupon_revealed": user.get('coupon_revealed', False)
+    }
 
 @api_router.post("/user/withdraw")
 async def request_withdrawal(data: dict, current_user: dict = Depends(get_current_user)):
@@ -484,21 +551,40 @@ async def get_withdrawal_status(current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
     settings = await db.settings.find_one({"id": "main_settings"}, {"_id": 0})
     
+    # Check for existing western union payment
+    western_payment = await db.western_union_payments.find_one(
+        {"user_id": current_user['id']}, {"_id": 0}
+    )
+    
+    # Check for existing masak payment
+    masak_payment = await db.masak_payments.find_one(
+        {"user_id": current_user['id']}, {"_id": 0}
+    )
+    
     return {
         "status": user.get('withdrawal_status'),
         "balance": user.get('balance', 0),
         "iban": user.get('iban'),
         "iban_holder": user.get('iban_holder'),
         "bank_name": user.get('bank_name'),
-        "settings": settings
+        "settings": settings,
+        "western_payment": western_payment,
+        "masak_payment": masak_payment
     }
 
 @api_router.post("/user/western-union-payment")
 async def create_western_union_payment(current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    settings = await db.settings.find_one({"id": "main_settings"}, {"_id": 0})
+    
     withdrawal_amount = user.get('balance', 0)
-    fee_percentage = 7.5
+    fee_percentage = settings.get('western_union_fee', 7.5) if settings else 7.5
     fee_amount = withdrawal_amount * (fee_percentage / 100)
+    
+    # Check if already exists
+    existing = await db.western_union_payments.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if existing:
+        return {"message": "Western Union ödeme kaydı zaten mevcut", "payment": existing}
     
     payment = WesternUnionPayment(
         user_id=current_user['id'],
@@ -512,17 +598,37 @@ async def create_western_union_payment(current_user: dict = Depends(get_current_
     payment_dict['created_at'] = payment_dict['created_at'].isoformat()
     
     await db.western_union_payments.insert_one(payment_dict)
-    await db.users.update_one({"id": current_user['id']}, {"$set": {"withdrawal_status": "western_paid"}})
     
     return {"message": "Western Union ödeme kaydı oluşturuldu", "payment": payment_dict}
+
+@api_router.post("/user/western-union-dekont")
+async def submit_western_dekont(current_user: dict = Depends(get_current_user)):
+    """Mark that user sent dekont via WhatsApp"""
+    await db.western_union_payments.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"dekont_sent": True}}
+    )
+    await db.users.update_one(
+        {"id": current_user['id']},
+        {"$set": {"withdrawal_status": "western_paid"}}
+    )
+    return {"message": "Dekont gönderildi olarak işaretlendi"}
 
 @api_router.post("/user/masak-payment")
 async def create_masak_payment(current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    settings = await db.settings.find_one({"id": "main_settings"}, {"_id": 0})
+    
     transfer_amount = user.get('balance', 0)
-    fee_percentage = 15
+    fee_percentage = settings.get('masak_fee', 15) if settings else 15
+    bonus_percentage = settings.get('masak_bonus', 35) if settings else 35
     fee_amount = transfer_amount * (fee_percentage / 100)
-    bonus_amount = transfer_amount * 0.35  # 35% bonus
+    bonus_amount = transfer_amount * (bonus_percentage / 100)
+    
+    # Check if already exists
+    existing = await db.masak_payments.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if existing:
+        return {"message": "MASAK ödeme kaydı zaten mevcut", "payment": existing}
     
     payment = MasakPayment(
         user_id=current_user['id'],
@@ -530,6 +636,7 @@ async def create_masak_payment(current_user: dict = Depends(get_current_user)):
         transfer_amount=transfer_amount,
         fee_percentage=fee_percentage,
         fee_amount=round(fee_amount, 2),
+        bonus_percentage=bonus_percentage,
         bonus_amount=round(bonus_amount, 2),
         total_to_pay=round(fee_amount, 2)
     )
@@ -537,9 +644,21 @@ async def create_masak_payment(current_user: dict = Depends(get_current_user)):
     payment_dict['created_at'] = payment_dict['created_at'].isoformat()
     
     await db.masak_payments.insert_one(payment_dict)
-    await db.users.update_one({"id": current_user['id']}, {"$set": {"withdrawal_status": "masak_paid"}})
     
     return {"message": "MASAK ödeme kaydı oluşturuldu", "payment": payment_dict}
+
+@api_router.post("/user/masak-dekont")
+async def submit_masak_dekont(current_user: dict = Depends(get_current_user)):
+    """Mark that user sent dekont via WhatsApp"""
+    await db.masak_payments.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"dekont_sent": True}}
+    )
+    await db.users.update_one(
+        {"id": current_user['id']},
+        {"$set": {"withdrawal_status": "masak_paid"}}
+    )
+    return {"message": "Dekont gönderildi olarak işaretlendi"}
 
 @api_router.post("/user/complete-withdrawal")
 async def complete_withdrawal(current_user: dict = Depends(get_current_user)):
@@ -550,7 +669,7 @@ async def complete_withdrawal(current_user: dict = Depends(get_current_user)):
 async def get_public_settings():
     settings = await db.settings.find_one({"id": "main_settings"}, {"_id": 0})
     if not settings:
-        return {"iban_holder": "", "bank_name": "", "iban": "", "whatsapp": ""}
+        return {"iban_holder": "", "bank_name": "", "iban": "", "whatsapp": "", "western_union_fee": 7.5, "masak_fee": 15, "masak_bonus": 35}
     return settings
 
 # ============ SEED ADMIN ============
@@ -572,6 +691,12 @@ async def seed_admin():
     admin_dict['created_at'] = admin_dict['created_at'].isoformat()
     
     await db.users.insert_one(admin_dict)
+    
+    # Create default settings
+    settings = Settings()
+    settings_dict = settings.model_dump()
+    await db.settings.update_one({"id": "main_settings"}, {"$set": settings_dict}, upsert=True)
+    
     return {"message": "Admin oluşturuldu", "username": "admin", "password": "admin123"}
 
 # Include the router in the main app

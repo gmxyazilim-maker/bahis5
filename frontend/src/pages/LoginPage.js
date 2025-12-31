@@ -48,28 +48,26 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-void-950 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/918798/pexels-photo-918798.jpeg')] bg-cover bg-center opacity-10"></div>
-      
+    <div className="min-h-screen bg-gradient-vibrant flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
         <div className="glass rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="font-chivo font-black text-3xl text-white mb-2">GİRİŞ YAP</h1>
-            <p className="text-zinc-400 text-sm">Hesabınıza giriş yapın</p>
+            <h1 className="font-chivo font-black text-3xl text-slate-800 mb-2">GİRİŞ YAP</h1>
+            <p className="text-slate-500 text-sm">Hesabınıza giriş yapın</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-zinc-300">Kullanıcı Adı</Label>
+              <Label htmlFor="username" className="text-slate-700">Kullanıcı Adı</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="username"
                   data-testid="login-username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:ring-gold-500 focus:border-gold-500"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Kullanıcı adınızı girin"
                   required
                 />
@@ -77,16 +75,16 @@ const LoginPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">Şifre</Label>
+              <Label htmlFor="password" className="text-slate-700">Şifre</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="password"
                   data-testid="login-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:ring-gold-500 focus:border-gold-500"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Şifrenizi girin"
                   required
                 />
@@ -94,9 +92,9 @@ const LoginPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Güvenlik Sorusu</Label>
+              <Label className="text-slate-700">Güvenlik Sorusu</Label>
               <div className="flex items-center gap-3">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-md px-4 py-2 text-gold-500 font-mono font-bold">
+                <div className="bg-gradient-purple text-white rounded-lg px-4 py-2 font-mono font-bold">
                   {captcha.num1} + {captcha.num2} = ?
                 </div>
                 <Input
@@ -104,14 +102,14 @@ const LoginPage = () => {
                   type="number"
                   value={captcha.answer}
                   onChange={(e) => setCaptcha({ ...captcha, answer: e.target.value })}
-                  className="w-24 bg-zinc-900 border-zinc-800 text-white text-center font-mono"
+                  className="w-24 bg-white border-slate-200 text-slate-800 text-center font-mono"
                   placeholder="?"
                   required
                 />
                 <button
                   type="button"
                   onClick={generateCaptcha}
-                  className="p-2 text-zinc-500 hover:text-gold-500 transition-colors"
+                  className="p-2 text-slate-400 hover:text-purple-600 transition-colors"
                 >
                   <RefreshCw className="h-5 w-5" />
                 </button>
@@ -122,16 +120,16 @@ const LoginPage = () => {
               type="submit"
               data-testid="login-submit-btn"
               disabled={loading}
-              className="w-full bg-gold-500 hover:bg-gold-600 text-black font-chivo font-bold uppercase tracking-wider h-12 neon-gold"
+              className="w-full bg-gradient-purple hover:opacity-90 text-white font-chivo font-bold uppercase tracking-wider h-12 glow-purple"
             >
               {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-zinc-500 text-sm">
+            <p className="text-slate-500 text-sm">
               Hesabınız yok mu?{' '}
-              <Link to="/register" className="text-gold-500 hover:text-gold-400 font-semibold">
+              <Link to="/register" className="text-purple-600 hover:text-purple-500 font-semibold">
                 Kayıt Ol
               </Link>
             </p>

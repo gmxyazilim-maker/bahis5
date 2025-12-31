@@ -20,6 +20,8 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const presetAmounts = [1000, 2000, 3000, 4000, 5000];
+
   const generateCaptcha = () => {
     const num1 = Math.floor(Math.random() * 10) + 1;
     const num2 = Math.floor(Math.random() * 10) + 1;
@@ -32,6 +34,10 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const selectAmount = (amount) => {
+    setFormData({ ...formData, depositAmount: amount.toString() });
   };
 
   const handleSubmit = async (e) => {
@@ -50,6 +56,11 @@ const RegisterPage = () => {
 
     if (formData.password.length < 6) {
       toast.error('Şifre en az 6 karakter olmalıdır!');
+      return;
+    }
+
+    if (!formData.depositAmount || parseFloat(formData.depositAmount) < 1000) {
+      toast.error('Lütfen en az 1000 TL tutar seçin!');
       return;
     }
 
@@ -72,21 +83,19 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-void-950 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/918798/pexels-photo-918798.jpeg')] bg-cover bg-center opacity-10"></div>
-      
+    <div className="min-h-screen bg-gradient-vibrant flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
         <div className="glass rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="font-chivo font-black text-3xl text-white mb-2">KAYIT OL</h1>
-            <p className="text-zinc-400 text-sm">Yeni hesap oluşturun</p>
+            <h1 className="font-chivo font-black text-3xl text-slate-800 mb-2">KAYIT OL</h1>
+            <p className="text-slate-500 text-sm">Yeni hesap oluşturun</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-zinc-300">İsim Soyisim</Label>
+              <Label htmlFor="username" className="text-slate-700">İsim Soyisim</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="username"
                   name="username"
@@ -94,7 +103,7 @@ const RegisterPage = () => {
                   type="text"
                   value={formData.username}
                   onChange={handleChange}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
                   placeholder="Ör: Ahmet Yılmaz"
                   required
                 />
@@ -102,9 +111,9 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-zinc-300">Telefon (K.ADI)</Label>
+              <Label htmlFor="phone" className="text-slate-700">Telefon (K.ADI)</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="phone"
                   name="phone"
@@ -112,17 +121,33 @@ const RegisterPage = () => {
                   type="text"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
                   placeholder="5XX XXX XX XX"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="depositAmount" className="text-zinc-300">Seçtiği Tutar (TL)</Label>
+            <div className="space-y-3">
+              <Label className="text-slate-700">Kupon Tutarı Seçin (TL)</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {presetAmounts.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => selectAmount(amount)}
+                    className={`py-2 px-3 rounded-lg font-bold text-sm transition-all ${
+                      formData.depositAmount === amount.toString()
+                        ? 'bg-gradient-purple text-white shadow-lg glow-purple'
+                        : 'bg-white border-2 border-purple-200 text-purple-600 hover:border-purple-400'
+                    }`}
+                  >
+                    {amount.toLocaleString('tr-TR')}
+                  </button>
+                ))}
+              </div>
               <div className="relative">
-                <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="depositAmount"
                   name="depositAmount"
@@ -130,17 +155,16 @@ const RegisterPage = () => {
                   type="number"
                   value={formData.depositAmount}
                   onChange={handleChange}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
-                  placeholder="1000"
-                  required
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
+                  placeholder="Veya elle girin..."
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">Şifre</Label>
+              <Label htmlFor="password" className="text-slate-700">Şifre</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="password"
                   name="password"
@@ -148,7 +172,7 @@ const RegisterPage = () => {
                   type="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
                   placeholder="En az 6 karakter"
                   required
                 />
@@ -156,9 +180,9 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-zinc-300">Şifre Tekrar</Label>
+              <Label htmlFor="confirmPassword" className="text-slate-700">Şifre Tekrar</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -166,7 +190,7 @@ const RegisterPage = () => {
                   type="password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="pl-10 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600"
+                  className="pl-10 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
                   placeholder="Şifreyi tekrar girin"
                   required
                 />
@@ -174,9 +198,9 @@ const RegisterPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Güvenlik Sorusu</Label>
+              <Label className="text-slate-700">Güvenlik Sorusu</Label>
               <div className="flex items-center gap-3">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-md px-4 py-2 text-gold-500 font-mono font-bold">
+                <div className="bg-gradient-purple text-white rounded-lg px-4 py-2 font-mono font-bold">
                   {captcha.num1} + {captcha.num2} = ?
                 </div>
                 <Input
@@ -184,14 +208,14 @@ const RegisterPage = () => {
                   type="number"
                   value={captcha.answer}
                   onChange={(e) => setCaptcha({ ...captcha, answer: e.target.value })}
-                  className="w-24 bg-zinc-900 border-zinc-800 text-white text-center font-mono"
+                  className="w-24 bg-white border-slate-200 text-slate-800 text-center font-mono"
                   placeholder="?"
                   required
                 />
                 <button
                   type="button"
                   onClick={generateCaptcha}
-                  className="p-2 text-zinc-500 hover:text-gold-500 transition-colors"
+                  className="p-2 text-slate-400 hover:text-purple-600 transition-colors"
                 >
                   <RefreshCw className="h-5 w-5" />
                 </button>
@@ -202,16 +226,16 @@ const RegisterPage = () => {
               type="submit"
               data-testid="register-submit-btn"
               disabled={loading}
-              className="w-full bg-gold-500 hover:bg-gold-600 text-black font-chivo font-bold uppercase tracking-wider h-12 neon-gold"
+              className="w-full bg-gradient-purple hover:opacity-90 text-white font-chivo font-bold uppercase tracking-wider h-12 glow-purple"
             >
               {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-zinc-500 text-sm">
+            <p className="text-slate-500 text-sm">
               Zaten hesabınız var mı?{' '}
-              <Link to="/login" className="text-gold-500 hover:text-gold-400 font-semibold">
+              <Link to="/login" className="text-purple-600 hover:text-purple-500 font-semibold">
                 Giriş Yap
               </Link>
             </p>
