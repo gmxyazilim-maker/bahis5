@@ -38,46 +38,51 @@ const AdminDashboard = () => {
   };
 
   const statCards = [
-    { title: 'Onay Bekleyen', value: stats.pendingUsers, icon: Clock, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    { title: 'Aktif Kullanıcı', value: stats.activeUsers, icon: Users, color: 'text-green-500', bg: 'bg-green-500/10' },
-    { title: 'Kupon Şablonu', value: stats.coupons, icon: Ticket, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Bekleyen Çekim', value: stats.pendingWithdrawals, icon: Wallet, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { title: 'Onay Bekleyen', value: stats.pendingUsers, icon: Clock, color: 'text-amber-500', bg: 'bg-gradient-to-r from-amber-100 to-orange-100', iconBg: 'bg-amber-500' },
+    { title: 'Aktif Kullanıcı', value: stats.activeUsers, icon: Users, color: 'text-green-500', bg: 'bg-gradient-to-r from-green-100 to-emerald-100', iconBg: 'bg-green-500' },
+    { title: 'Kupon Şablonu', value: stats.coupons, icon: Ticket, color: 'text-blue-500', bg: 'bg-gradient-to-r from-blue-100 to-cyan-100', iconBg: 'bg-blue-500' },
+    { title: 'Bekleyen Çekim', value: stats.pendingWithdrawals, icon: Wallet, color: 'text-purple-500', bg: 'bg-gradient-to-r from-purple-100 to-violet-100', iconBg: 'bg-purple-500' },
   ];
 
   return (
     <div className="space-y-6" data-testid="admin-dashboard">
       <div>
-        <h1 className="font-chivo font-black text-3xl text-white mb-2">Dashboard</h1>
-        <p className="text-zinc-400">Genel bakış ve istatistikler</p>
+        <h1 className="font-chivo font-black text-3xl text-slate-800 mb-2">Dashboard</h1>
+        <p className="text-slate-500">Genel bakış ve istatistikler</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="bg-zinc-900/70 border-zinc-800">
+          <Card key={stat.title} className={`${stat.bg} border-0 shadow-lg card-hover`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">
+              <CardTitle className="text-sm font-medium text-slate-600">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bg}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={`p-2 rounded-xl ${stat.iconBg} shadow-lg`}>
+                <stat.icon className="h-4 w-4 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold font-mono text-white">{stat.value}</div>
+              <div className={`text-3xl font-bold font-mono ${stat.color}`}>{stat.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="bg-zinc-900/70 border-zinc-800">
+      <Card className="bg-white/80 backdrop-blur border-slate-200 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-white">Hoş Geldiniz</CardTitle>
+          <CardTitle className="text-slate-800">Hoş Geldiniz</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-zinc-400">
+          <p className="text-slate-500">
             Sol menüyü kullanarak kupon şablonları oluşturabilir, kullanıcıları yönetebilir, 
             para çekim taleplerini kontrol edebilir ve sistem ayarlarını düzenleyebilirsiniz.
           </p>
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+            <p className="text-blue-700 text-sm">
+              <strong>İpucu:</strong> Kupon sonuçlarını kullanıcıya göstermek için "Kayıtlı Kullanıcılar" sayfasında göz ikonuna tıklayın.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
