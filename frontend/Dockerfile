@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json ./
 
 # Bağımlılıkları yükle
-RUN yarn install
+RUN npm install
 
 # Kaynak kodları kopyala
 COPY . .
@@ -16,7 +16,7 @@ ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 
 # Production build
-RUN yarn build
+RUN npm run build
 
 # Nginx ile serve et
 FROM nginx:alpine
