@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # MongoDB Veritabanı
+  mongodb:
+    image: mongo:7.0
+    container_name: kupon_mongodb
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - kupon_network
+
+  # Backend API (FastAPI)
+  backend:
+    build: ./backend
+    container_name: kupon_backend
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=kupon_db
+      - JWT_SECRET=cok-guclu-gizli-anahtar-degistirin-123456
+      - CORS_ORIGINS=*
+    depends_on:
+      - mongodb
+    networks:
+      - kupon_network
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_BACKEND_URL=http://SUNUCU_IP:8001
+    container_name: kupon_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - kupon_network
+
+  # Nginx Reverse Proxy (Backend için)
+  nginx:
+    image: nginx:alpine
+    container_name: kupon_nginx
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - kupon_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  kupon_network:
+    driver: bridge
