@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json ./
 
 # Bağımlılıkları yükle
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Kaynak kodları kopyala
 COPY . .
