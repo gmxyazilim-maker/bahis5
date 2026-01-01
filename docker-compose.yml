@@ -31,7 +31,7 @@ services:
     build:
       context: ./frontend
       args:
-        - REACT_APP_BACKEND_URL=http://SUNUCU_IP:8001
+        - REACT_APP_BACKEND_URL=http://72.61.185.186:8001
     container_name: kupon_frontend
     restart: always
     ports:
